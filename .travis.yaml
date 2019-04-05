@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t viceo/react-test -f ./client/Dockerfile ./client
+
+script:
+  - docker run viceo/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t viceo/tuto-fibonacci-client ./client/Dockerfile.prod
+  - docker build -t viceo/tuto-nginx ./nginx/Dockerfile.prod
+  - docker build -t viceo/tuto-fibonacci-api ./server/Dockerfile.prod
+  - docker build -t viceo/tuto-worker ./worker/Dockerfile.prod
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to Dockerhub
+  - docker push viceo/tuto-fibonacci-client
+  - docker push viceo/tuto-nginx
+  - docker push viceo/tuto-fibonacci-api
+  - docker push viceo/tuto-worker
